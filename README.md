@@ -1,6 +1,28 @@
+# Laporan Hasil Praktikum: Final Project Aplikasi Berbasis Container
+
+## Identitas Mahasiswa
+
+- **Nama:** I Gusti Made Rizky Dwiguna
+- **NIM:** 2415354063
+- **Kelas/Rombel:** TRPL 4 c
+- **Tanggal Praktikum:** 20 Mei 2026
+
+---
+
 # Project App - Panduan Pengujian
 
 Aplikasi Node.js + Express + MySQL dengan Docker Compose untuk CRUD User.
+
+---
+
+## Teknologi & Tools yang Digunakan
+
+- **Sistem Operasi:** Windows / Linux / MacOS
+- **Containerization:** Docker & Docker Compose
+- **Bahasa Pemrograman:** JavaScript (Node.js)
+- **Framework:** Express.js
+- **Database:** MySQL 8.0
+- **Tools Lain:** VS Code, Git, Postman, Docker Hub
 
 ---
 
@@ -29,7 +51,7 @@ docker compose ps
 
 **Output yang diharapkan:**
 
-```
+```bash
 NAME                IMAGE                         STATUS
 project-app-db-1   mysql:8.0                     Up (healthy)
 project-app-web-1  project-app-web:latest        Up
@@ -152,22 +174,6 @@ mysql -h 127.0.0.1 -u app_user -papp_pass user_db
 }
 ```
 
-**Test Case - Validasi Required Fields:**
-
-```json
-{
-  "name": "Jane"
-}
-```
-
-**Expected Response (Status 400):**
-
-```json
-{
-  "message": "Name and email are required"
-}
-```
-
 ### 2.4 GET `/users` - Mengambil Semua User (Verifikasi)
 
 **Method:** GET  
@@ -188,8 +194,7 @@ mysql -h 127.0.0.1 -u app_user -papp_pass user_db
 ### 2.5 PUT `/users/:id` - Memperbarui User
 
 **Method:** PUT  
-**URL:** `http://localhost:3000/users/1`  
-**Headers:** `Content-Type: application/json`
+**URL:** `http://localhost:3000/users/1`
 
 **Request Body:**
 
@@ -206,22 +211,8 @@ mysql -h 127.0.0.1 -u app_user -papp_pass user_db
 {
   "message": "User berhasil diperbarui",
   "id": 1,
-  "name": "John Updated",
-  "email": "john.updated@example.com"
-}
-```
-
-**Test Case - User Tidak Ditemukan:**
-
-```
-URL: http://localhost:3000/users/999
-```
-
-**Expected Response (Status 404):**
-
-```json
-{
-  "message": "User tidak ditemukan"
+  "name": "rizky dwiguna bali",
+  "email": "rizkydwiguna@gmail.com"
 }
 ```
 
@@ -239,22 +230,6 @@ URL: http://localhost:3000/users/999
 }
 ```
 
-**Verifikasi dengan GET `/users`:**
-
-```
-Expected: []
-```
-
-### 2.7 Testing via Browser (GET Only)
-
-```
-https://localhost:3000/users
-```
-
-**Expected Result:**
-
-- Menampilkan JSON array users
-
 ---
 
 ## 3. Pengujian Upload ke Docker Hub
@@ -265,22 +240,11 @@ https://localhost:3000/users
 docker login
 ```
 
-**Masukkan:**
-
-- Username Docker Hub
-- Password
-
 ### 3.2 Tag Image
 
 ```bash
 docker tag project-app-web:latest YOUR_DOCKERHUB_USERNAME/project-app:latest
 docker tag project-app-web:latest YOUR_DOCKERHUB_USERNAME/project-app:v1.0
-```
-
-**Verifikasi:**
-
-```bash
-docker images | grep YOUR_DOCKERHUB_USERNAME
 ```
 
 ### 3.3 Push ke Docker Hub
@@ -290,57 +254,13 @@ docker push YOUR_DOCKERHUB_USERNAME/project-app:latest
 docker push YOUR_DOCKERHUB_USERNAME/project-app:v1.0
 ```
 
-**Expected Output:**
-
-- ✅ Pushed sha256:xxxxx
-- ✅ latest: digest: sha256:xxxxx size: xxxx
-
-### 3.4 Verifikasi di Docker Hub
-
-- Kunjungi: `https://hub.docker.com/r/YOUR_DOCKERHUB_USERNAME/project-app`
-- Verifikasi tags `latest` dan `v1.0` tersedia
-
-### 3.5 Pull Image dari Docker Hub (Clean Test)
-
-```bash
-docker rmi YOUR_DOCKERHUB_USERNAME/project-app:latest
-docker pull YOUR_DOCKERHUB_USERNAME/project-app:latest
-docker run -d -p 3001:3000 \
-  -e DB_HOST=docker.for.mac.localhost \
-  -e DB_USER=app_user \
-  -e DB_PASSWORD=app_pass \
-  -e DB_NAME=user_db \
-  -e DB_PORT=3306 \
-  YOUR_DOCKERHUB_USERNAME/project-app:latest
-```
-
-**Verifikasi:**
-
-- Container berjalan
-- API accessible di `http://localhost:3001/users`
-
 ---
 
-## 4. Pengujian Lainnya yang Diperlukan
+## 4. Pengujian Tambahan
 
-### 4.1 Health Check - Koneksi Database
-
-**Test:** Matikan container database, lihat retry logic
+### 4.1 Performance - Bulk Insert
 
 ```bash
-docker compose down db
-```
-
-**Expected Behavior:**
-
-- Web container mencoba koneksi ulang 10 kali
-- Setiap percobaan interval 5 detik
-- Jika gagal semua: exit dengan code 1
-
-### 4.2 Performance - Bulk Insert
-
-```bash
-# Script untuk insert 100 users
 for i in {1..100}; do
   curl -X POST http://localhost:3000/users \
     -H "Content-Type: application/json" \
@@ -348,32 +268,7 @@ for i in {1..100}; do
 done
 ```
 
-**Verifikasi:**
-
-- Semua 100 user berhasil insert
-- Response time masuk akal
-
-### 4.3 Data Persistence - Volume Test
-
-```bash
-# 1. Tambah beberapa user
-# 2. Stop container
-docker compose down
-
-# 3. Jalankan kembali
-docker compose up -d
-
-# 4. GET /users untuk verifikasi data masih ada
-curl http://localhost:3000/users
-```
-
-**Expected Result:**
-
-- Data tetap ada setelah container restart
-
-### 4.4 Security - SQL Injection Prevention
-
-**Test Payload:**
+### 4.2 SQL Injection Prevention
 
 ```json
 {
@@ -382,121 +277,13 @@ curl http://localhost:3000/users
 }
 ```
 
-**Expected Behavior:**
-
-- Query parameterized (menggunakan ?)
-- Data insert dengan aman tanpa error
-
-**Verifikasi:**
-
-```bash
-curl http://localhost:3000/users
-```
-
-**Expected:**
-
-- Table `users` masih ada
-- Data insert dengan nama aneh tapi aman
-
-### 4.5 CORS Testing (Optional)
-
-**Test dari domain berbeda:**
-
-```javascript
-fetch("http://localhost:3000/users", {
-  method: "GET",
-  headers: { "Content-Type": "application/json" },
-})
-  .then((r) => r.json())
-  .then((d) => console.log(d));
-```
-
-**Current Behavior:**
-
-- CORS belum diatur, client dari domain berbeda mungkin blocked
-
-### 4.6 Error Handling - Invalid JSON
+### 4.3 Error Handling - Invalid JSON
 
 ```bash
 curl -X POST http://localhost:3000/users \
   -H "Content-Type: application/json" \
   -d "invalid json{"
 ```
-
-**Expected Response (Status 400):**
-
-```json
-{
-  "error": "..."
-}
-```
-
-### 4.7 Environment Variable Override
-
-**Test:**
-
-```bash
-PORT=8080 DB_USER=custom_user node app.js
-```
-
-**Expected:**
-
-- Server berjalan di port 8080
-- Koneksi ke database dengan user `custom_user`
-
-### 4.8 Dockerfile Security Scan
-
-```bash
-docker scan project-app-web:latest
-```
-
-**Expected:**
-
-- Minimal vulnerabilities
-- Non-root user digunakan (USER node)
-
-### 4.9 Container Resource Limits
-
-Update `docker-compose.yml` dengan limits:
-
-```yaml
-services:
-  web:
-    deploy:
-      resources:
-        limits:
-          cpus: "0.5"
-          memory: 256M
-  db:
-    deploy:
-      resources:
-        limits:
-          cpus: "1"
-          memory: 512M
-```
-
-**Test:**
-
-```bash
-docker compose up -d
-docker stats
-```
-
-**Verifikasi:**
-
-- CPU dan Memory usage sesuai limit
-
-### 4.10 Graceful Shutdown
-
-```bash
-docker compose down
-```
-
-**Expected:**
-
-- Container berhenti dengan clean
-- Tidak ada orphaned processes
-- Volume data persisten
 
 ---
 
@@ -511,11 +298,7 @@ docker compose down
 - [ ] DELETE `/users/:id` hapus user
 - [ ] Error handling bekerja
 - [ ] Data persist setelah restart
-- [ ] Image berhasil di-push ke Docker Hub
-- [ ] Image bisa di-pull dan di-run dari Docker Hub
-- [ ] Performance test (bulk insert)
 - [ ] SQL Injection prevention
-- [ ] Database retry logic
 
 ---
 
@@ -523,25 +306,17 @@ docker compose down
 
 ### Container Exit Code 1
 
-**Solusi:**
-
 ```bash
 docker compose logs web-1
 ```
 
-- Cek koneksi database
-- Verifikasi credentials di `.env`
-
 ### Database Permission Denied
 
-**Solusi:**
-
-- Pastikan `DB_USER` dan `DB_PASSWORD` sama di `docker-compose.yml` dan `.env`
-- Hapus volume lama: `docker volume rm project-app_db-data-fresh`
+```bash
+docker volume rm project-app_db-data-fresh
+```
 
 ### Port 3000 Already in Use
-
-**Solusi:**
 
 ```bash
 docker compose down
@@ -554,20 +329,13 @@ docker compose up
 
 ## Referensi
 
-- [Express.js Docs](https://expressjs.com/)
-- [MySQL Docker Hub](https://hub.docker.com/_/mysql)
-- [Docker Compose Docs](https://docs.docker.com/compose/)
-- [Postman Docs](https://learning.postman.com/)
+- https://expressjs.com/
+- https://hub.docker.com/_/mysql
+- https://docs.docker.com/compose/
+- https://learning.postman.com/
+
+---
 
 ## Kesimpulan
 
-Project App adalah aplikasi CRUD sederhana menggunakan Docker Compose, Express.js, dan MySQL. Saat ini alur yang tepat masih belum 100% dipahami, jadi dokumentasi ini dibuat sebagai bahan pengujian dan evaluasi.
-
-Hal-hal utama yang sudah terlihat:
-
-- Aplikasi sudah menggunakan Docker Compose untuk multi-container setup.
-- Database MySQL disimpan ke volume agar data persisten.
-- Endpoint CRUD dapat diuji lewat Postman, browser, atau `curl`.
-- Terdapat logika retry untuk koneksi database.
-
-Namun, alur lengkap deployment dan service interaction perlu dikaji ulang agar setup menjadi lebih jelas dan dapat dipakai dengan lebih percaya diri.
+Project App adalah aplikasi CRUD sederhana menggunakan Docker Compose, Express.js, dan MySQL. Aplikasi sudah mendukung multi-container setup, volume persistence, serta pengujian endpoint CRUD menggunakan Postman maupun curl.

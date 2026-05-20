@@ -1,0 +1,39 @@
+services:
+  web:
+    build: ./app
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: db
+      DB_USER: app_user
+      DB_PASSWORD: app_pass
+      DB_NAME: user_db
+      DB_PORT: 3306
+    depends_on:
+      - db
+    networks:
+      - app-network
+
+  db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_HOST: "%"
+      MYSQL_DATABASE: user_db
+      MYSQL_USER: app_user
+      MYSQL_PASSWORD: app_pass
+    ports:
+      - "3306:3306"
+    volumes:
+      - db-data-fresh:/var/lib/mysql
+    networks:
+      - app-network
+
+volumes:
+  db-data-fresh:
+
+networks:
+  app-network:
+    driver: bridge
